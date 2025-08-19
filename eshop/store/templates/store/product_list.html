@@ -1,0 +1,23 @@
+{% extends 'store/base.html' %}
+
+{% block content %}
+<h2>Shop</h2>
+
+<form method="get">
+  <input type="search" name="q" placeholder="Search products..." value="{{ q }}">
+</form>
+
+<div class="grid">
+  {% for p in products %}
+  <article>
+    <img src="{% if p.image_url %}{{ p.image_url }}{% else %}https://picsum.photos/seed/{{ p.id }}/400/240{% endif %}" alt="{{ p.name }}" />
+    <h3><a href="{% url 'store:product_detail' p.id %}">{{ p.name }}</a></h3>
+    <p class="price">${{ p.price }}</p>
+    <footer><a href="{% url 'store:add_to_cart' p.id %}" role="button">Add to cart</a></footer>
+  </article>
+  {% empty %}
+  <p>No products.</p>
+  {% endfor %}
+</div>
+
+{% endblock %}

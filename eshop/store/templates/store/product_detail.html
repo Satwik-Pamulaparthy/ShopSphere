@@ -1,0 +1,12 @@
+{% extends 'store/base.html' %}
+{% block content %}
+<article>
+  <header><h2>{{ product.name }}</h2></header>
+  {% if product.image_url %}
+    <img src="{{ product.image_url }}" alt="{{ product.name }}" />
+  {% endif %}
+  <p>{{ product.description }}</p>
+  <p class="price">${{ product.price }}</p>
+  <a href="{% url 'store:add_to_cart' product.id %}" role="button">Add to cart</a>
+</article>
+{% endblock %}
