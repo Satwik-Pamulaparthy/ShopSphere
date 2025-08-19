@@ -1,9 +1,42 @@
 {% extends 'store/base.html' %}
+
 {% block content %}
-<h2>Login</h2>
-<form method="post">
+<h2 class="login-title">Login</h2>
+
+<form method="post" class="login-form">
   {% csrf_token %}
   {{ form.as_p }}
   <button type="submit">Login</button>
 </form>
+
+<style>
+  /* Make the page heading and labels blue */
+  .login-title,
+  .login-form label {
+    color: #0b0b75;  /* same as --brand in base.html */
+    font-weight: 600;
+  }
+
+  /* Optional: tidy inputs so they match the site */
+  .login-form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccd2e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+  }
+
+  .login-form button {
+    width: 100%;
+    padding: 12px;
+    background: #0b5fad;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .login-form button:hover { background: #094a85; }
+</style>
 {% endblock %}

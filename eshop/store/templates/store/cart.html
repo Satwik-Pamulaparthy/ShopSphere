@@ -1,11 +1,20 @@
 {% extends 'store/base.html' %}
 {% block content %}
-<h2>Your Cart</h2>
-{% if items %}
-<table>
-  <thead><tr><th>Name</th><th>Price</th><th>Qty</th><th>Subtotal</th><th></th></tr></thead>
-  <tbody>
-    {% for it in items %}
+<div class="cart-container">
+  <h2>Your Cart ({{ items|length }} products)</h2>
+  {% if items %}
+  <table class="cart-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Qty</th>
+        <th>Subtotal</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for it in items %}
       <tr>
         <td>{{ it.name }}</td>
         <td>${{ it.price }}</td>
@@ -15,14 +24,78 @@
           <a href="{% url 'store:update_cart' it.id 'inc' %}">+</a>
         </td>
         <td>${{ it.subtotal }}</td>
-        <td><a href="{% url 'store:update_cart' it.id 'del' %}">Remove</a></td>
+        <td>
+          <a href="{% url 'store:update_cart' it.id 'del' %}">Remove</a>
+        </td>
       </tr>
-    {% endfor %}
-  </tbody>
-</table>
-<h3>Total: ${{ total }}</h3>
-<a href="{% url 'store:checkout' %}" role="button">Checkout</a>
-{% else %}
-<p>Cart is empty.</p>
-{% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  <h3>Total: ${{ total }}</h3>
+  <a href="{% url 'store:checkout' %}" class="checkout-btn">Checkout</a>
+  {% else %}
+  <p>Your cart is empty.</p>
+  {% endif %}
+</div>
+
+<style>
+  .cart-container {
+    max-width: 800px;
+    margin: 3rem auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .cart-container h2,
+  .cart-container h3 {
+    color: #0b0b75; /* Blue */
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+  }
+
+  .cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+  }
+
+  .cart-table th {
+    text-align: left;
+    padding: 0.75rem;
+    background: #f5f7fa;
+    color: #0b0b75; /* Blue for headings */
+  }
+
+  .cart-table td {
+    padding: 0.75rem;
+    background: #ffffff; /* White rows */
+    color: #0b0b75; /* Blue text */
+    border-bottom: 1px solid #eee;
+  }
+
+  .cart-table a {
+    color: #0b0b75;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  .cart-table a:hover {
+    text-decoration: underline;
+  }
+
+  .checkout-btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: #0b0b75;
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s ease;
+  }
+  .checkout-btn:hover {
+    background: #1c1c9c;
+  }
+</style>
 {% endblock %}

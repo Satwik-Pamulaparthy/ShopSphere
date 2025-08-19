@@ -34,7 +34,7 @@ def product_detail(request, pk):
 def _get_cart(request):
     return request.session.setdefault('cart', {})
 
-# 🔒 Require login before adding to cart
+# Require login before adding to cart
 @login_required(login_url='store:login')
 def add_to_cart(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -103,6 +103,47 @@ def register_view(request):
 def api_products(request):
     data = list(Product.objects.values('id','name','description','price','image_url','category'))
     return JsonResponse(data, safe=False)
+
+# ===============================
+# NEW: API for the cart drawer
+# ===============================
+def api_cart(request):
+    """
+    Returns the current session cart as JSON for the slide-over drawer.
+    Structure:
+      {
+        "items":[{"id":1,"name":"...","price":1.23,"qty":2,"subtotal":2.46,"image_url":"..."}],
+        "total": 12.34,
+        "count": 3
+      }
+    """
+    cart = request.session.get('cart', {})
+    items = []
+    total = Decimal('0.00')
+
+    for pid, info in cart.items():
+        # Safe parsing
+        price = Decimal(str(info.get('price', '0')))
+        qty = int(info.get('qty', 0))
+        subtotal = price * qty
+        total += subtotal
+
+        # Try to enrich from DB (handles deleted products gracefully)
+        prod = Product.objects.filter(pk=int(pid)).first()
+        items.append({
+            'id': int(pid),
+            'name': (prod.name if prod else info.get('name')),
+            'price': float(price),
+            'qty': qty,
+            'subtotal': float(subtotal),
+            'image_url': getattr(prod, 'image_url', None),
+        })
+
+    return JsonResponse({
+        'items': items,
+        'total': float(total),
+        'count': sum(int(i.get('qty', 0)) for i in cart.values()),
+    })
 
 # ===============================
 # Logout view (handles GET/POST)

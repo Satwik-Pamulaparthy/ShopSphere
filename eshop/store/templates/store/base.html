@@ -1,63 +1,92 @@
 <!doctype html>
 <html>
+  <style>
+  /* Flying image ghost */
+  .flying-img {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    will-change: transform, opacity;
+    transition: transform .6s cubic-bezier(.2,.7,.2,1), opacity .6s ease;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  @keyframes cart-bounce {
+    0% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+    60% { transform: translateY(0); }
+    80% { transform: translateY(-2px); }
+    100% { transform: translateY(0); }
+  }
+  .cart-bounce {
+    animation: cart-bounce .5s ease;
+  }
+</style>
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ShopSphere</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <style>
-      /* --- Global light theme & full-height page --- */
-      :root { --brand: #0b0b75; }
+      :root { --brand:#0b0b75; --border:#e6e6e6; }
 
-      html, body {
-        height: 100%;
-        margin: 0;
-        background-color: #ffffff !important; /* Ensure white everywhere */
-        color: #111; /* Dark text for contrast */
-      }
-
-      /* Make main fill viewport so no dark band appears */
-      main.container {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-      }
-
+      html, body { height:100%; margin:0; background:#fff; color:#111; }
+      main.container { min-height:100vh; display:flex; flex-direction:column; }
       header { margin: 1rem 0; }
+      nav ul li a { color: var(--brand); font-weight: 500; }
 
-      nav ul li a {
-        color: var(--brand); /* Navy blue text */
-        font-weight: 500;
-      }
+      .brand { display:flex; align-items:center; gap:6px; font-weight:700; font-size:1.1rem; color:var(--brand); text-decoration:none; }
+      .brand img { height:28px; width:auto; }
 
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-weight: bold;
-        font-size: 1.1rem;
-        color: var(--brand);
-        text-decoration: none;
+      /* ===== Cart Drawer + Backdrop ===== */
+      .cart-backdrop{
+        position:fixed; inset:0;
+        background:rgba(17,24,39,.28);    /* soft dark overlay */
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        opacity:0; visibility:hidden; transition:opacity .18s ease, visibility .18s ease;
+        z-index: 60;
       }
+      .cart-drawer{
+        position:fixed; top:0; right:0; height:100%; width:min(420px, 92vw);
+        background:#fff; box-shadow:-12px 0 28px rgba(0,0,0,.18);
+        transform:translateX(100%); transition:transform .22s ease;
+        z-index: 61; display:flex; flex-direction:column;
+        border-left:1px solid var(--border);
+      }
+      .cart-open .cart-backdrop{ opacity:1; visibility:visible; }
+      .cart-open .cart-drawer{ transform:none; }
 
-      .brand img {
-        height: 28px;  /* Small logo */
-        width: auto;
+      .cart-header{
+        display:flex; justify-content:space-between; align-items:center;
+        padding:16px 18px; border-bottom:1px solid var(--border);
       }
+      .cart-title{ font-size:1.1rem; font-weight:700; color:#0b0b75; }
+      .cart-close{ background:transparent; border:1px solid #0b0b75; color:#0b0b75; border-radius:999px; width:34px; height:34px; cursor:pointer; }
 
-      /* --- Login page color tweaks (labels & heading) --- */
-      /* Applies site-wide but primarily affects your login form */
-      h1, label {
-        color: var(--brand) !important; /* same blue as EShop */
+      .cart-body{ padding:12px 16px; overflow:auto; flex:1; }
+      .cart-empty{
+        text-align:center; padding:56px 12px; color:#0b0b75;
       }
+      .cart-item{
+        display:grid; grid-template-columns:64px 1fr auto; gap:12px; align-items:center;
+        padding:10px 0; border-bottom:1px solid var(--border);
+      }
+      .cart-item img{ width:64px; height:64px; object-fit:contain; background:#fafafa; border:1px solid var(--border); border-radius:8px; }
+      .cart-item .name{ font-weight:600; margin-bottom:2px; }
+      .cart-item .meta{ color:#666; font-size:.9rem; }
 
-      /* Optional: make primary action buttons match brand */
-      form button, form [type="submit"] {
-        background-color: var(--brand) !important;
-        border: none !important;
+      .cart-footer{
+        border-top:1px solid var(--border);
+        padding:12px 16px; display:grid; gap:10px;
       }
-      form button:hover, form [type="submit"]:hover {
-        filter: brightness(0.95);
+      .btn-primary{
+        background:#0b0b75; color:#fff; border:none; padding:12px 14px; border-radius:8px; cursor:pointer; width:100%;
+      }
+      .btn-secondary{
+        background:#fff; color:#0b0b75; border:1px solid #0b0b75; padding:12px 14px; border-radius:8px; cursor:pointer; width:100%;
       }
     </style>
   </head>
@@ -69,12 +98,13 @@
             <li>
               <a href="{% url 'store:product_list' %}" class="brand">
                 <img src="https://dm.cms.aldi.cx/is/content/prod1amer/aldius-logo" alt="Logo">
-                EShop
+                ShopSphere
               </a>
             </li>
           </ul>
           <ul>
-            <li><a href="{% url 'store:view_cart' %}">Cart ({{ cart_count }})</a></li>
+            <!-- Keep href to /cart/ as a no-JS fallback; JS will intercept click and open drawer -->
+            <li><a href="{% url 'store:view_cart' %}" id="open-cart-link">Cart ({{ cart_count }})</a></li>
             {% if request.user.is_authenticated %}
               <li>Hi, {{ request.user.username }}</li>
               <li><a href="{% url 'store:logout' %}">Logout</a></li>
@@ -85,7 +115,90 @@
           </ul>
         </nav>
       </header>
+
       {% block content %}{% endblock %}
     </main>
+
+    <!-- ===== Drawer Markup (added once, at the end of body) ===== -->
+    <div class="cart-backdrop" id="cart-backdrop"></div>
+    <aside class="cart-drawer" id="cart-drawer">
+      <div class="cart-header">
+        <div class="cart-title">Your Cart (<span id="cart-count">0</span> products)</div>
+        <button class="cart-close" id="cart-close" aria-label="Close">✕</button>
+      </div>
+
+      <div class="cart-body" id="cart-body">
+        <!-- Items go here -->
+      </div>
+
+      <div class="cart-footer">
+        <button class="btn-primary" id="go-shopping">Let’s go shopping</button>
+        <a href="{% url 'store:view_cart' %}" class="btn-secondary" style="text-align:center;">View Full Cart</a>
+      </div>
+    </aside>
+
+    <script>
+      (function(){
+        const root = document.documentElement;
+        const openLink = document.getElementById('open-cart-link');
+        const drawer = document.getElementById('cart-drawer');
+        const backdrop = document.getElementById('cart-backdrop');
+        const closeBtn = document.getElementById('cart-close');
+        const bodyEl = document.getElementById('cart-body');
+        const countEl = document.getElementById('cart-count');
+        const goShop = document.getElementById('go-shopping');
+
+        function openCart(e){
+          if(e) e.preventDefault();
+          document.body.classList.add('cart-open');
+          loadCart();
+        }
+        function closeCart(){
+          document.body.classList.remove('cart-open');
+        }
+
+        async function loadCart(){
+          bodyEl.innerHTML = '<p class="cart-empty" style="color:#666;">Loading…</p>';
+          try{
+            const res = await fetch('{% url "store:api_cart" %}', {headers: {'X-Requested-With':'fetch'}});
+            const data = await res.json();
+            countEl.textContent = data.count || 0;
+
+            if(!data.items || data.items.length === 0){
+              bodyEl.innerHTML = `
+                <div class="cart-empty">
+                  <h3 style="margin:0 0 6px; font-size:1.25rem;">Your cart is empty.</h3>
+                  <div style="color:#777;">But full of possibilities</div>
+                </div>`;
+              return;
+            }
+
+            bodyEl.innerHTML = data.items.map(it => `
+              <div class="cart-item">
+                <img src="${it.image_url ? it.image_url : 'https://via.placeholder.com/64?text=%20'}" alt="">
+                <div>
+                  <div class="name">${it.name}</div>
+                  <div class="meta">${it.qty} × $${it.price.toFixed(2)}</div>
+                </div>
+                <div class="meta">$${it.subtotal.toFixed(2)}</div>
+              </div>
+            `).join('') + `
+              <div style="display:flex; justify-content:space-between; padding:12px 0; font-weight:700;">
+                <span>Total</span><span>$${Number(data.total || 0).toFixed(2)}</span>
+              </div>`;
+          }catch(err){
+            bodyEl.innerHTML = '<p class="cart-empty" style="color:#c00;">Failed to load cart.</p>';
+          }
+        }
+
+        openLink && openLink.addEventListener('click', openCart);
+        closeBtn && closeBtn.addEventListener('click', closeCart);
+        backdrop && backdrop.addEventListener('click', closeCart);
+        goShop && goShop.addEventListener('click', closeCart);
+
+        // ESC key closes
+        window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeCart(); });
+      })();
+    </script>
   </body>
 </html>

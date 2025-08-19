@@ -20,4 +20,5 @@ urlpatterns = [
 
 
     path('api/products/', views.api_products, name='api_products'),
+    path('api/cart/', views.api_cart, name='api_cart'),
 ]
