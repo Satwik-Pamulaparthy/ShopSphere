@@ -75,3 +75,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'store:product_list'
 LOGOUT_REDIRECT_URL = 'store:product_list'
+LOGIN_URL = '/login/'
