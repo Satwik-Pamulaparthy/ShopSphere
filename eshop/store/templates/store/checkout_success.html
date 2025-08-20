@@ -1,8 +1,49 @@
-{% extends 'store/base.html' %}
+{% extends "store/base.html" %}
 {% block content %}
-<article>
-  <h2>Order placed!</h2>
-  <p>Your order #{{ order.id }} total is <strong>${{ order.total }}</strong>.</p>
-  <p>Thank you for shopping.</p>
-</article>
+<div class="success-wrap">
+  <!-- Starburst badge + circle + check -->
+  <svg class="badge" viewBox="0 0 200 200" aria-hidden="true">
+    <!-- Starburst (12 points) -->
+    <polygon class="burst"
+      points="100,10 120,30 147,25 160,50 185,60 180,87 190,110 170,125 168,153 143,160
+              130,185 105,178 80,190 65,168 37,170 30,145 10,130 22,105 10,80 33,67 38,40
+              65,37 80,15 105,22"
+    />
+    <!-- Inner green circle -->
+    <circle class="ring" cx="100" cy="100" r="58" fill="none"/>
+    <!-- White check mark -->
+    <path class="tick" d="M74 100 l18 18 L128 82" fill="none"/>
+  </svg>
+
+  <h2>Order placed successfully!</h2>
+  <a href="{% url 'store:product_list' %}" class="btn">Continue shopping</a>
+</div>
+
+<style>
+  .success-wrap{
+    min-height:72vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; background:#fff;
+  }
+  .badge{ width:160px; height:160px; display:block; }
+
+  /* Colors to match your sample */
+  .burst{ fill:#7AC142; transform-origin:50% 50%; animation:pop .5s ease-out .35s both; }
+  .ring{ stroke:#ffffff; stroke-width:10; stroke-linecap:round; stroke-dasharray:365; stroke-dashoffset:365;
+         animation:draw .7s ease .15s forwards; }
+  .tick{ stroke:#ffffff; stroke-width:14; stroke-linecap:round; stroke-linejoin:round;
+         stroke-dasharray:120; stroke-dashoffset:120; animation:draw .45s ease .55s forwards; }
+
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes pop {
+    0%   { transform:scale(.6); filter:drop-shadow(0 0 0 rgba(0,0,0,0)); }
+    60%  { transform:scale(1.08); filter:drop-shadow(0 6px 16px rgba(0,0,0,.18)); }
+    100% { transform:scale(1);    filter:drop-shadow(0 4px 10px rgba(0,0,0,.12)); }
+  }
+
+  h2{ margin-top:18px; color:#0b0b75; font-weight:700; }
+  .btn{
+    margin-top:14px; display:inline-block; background:#0b0b75; color:#fff; text-decoration:none;
+    padding:.8rem 1.2rem; border-radius:.6rem;
+  }
+</style>
 {% endblock %}
